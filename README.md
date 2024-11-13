@@ -1,8 +1,8 @@
 # KaviGo
-
-## Description
+---
 **KaviGo** is a simple Go-based CLI tool that automatically renames files to match the naming conventions required by [Kavita](https://github.com/Kareadita/Kavita), helping you keep your manga library better organized.
 
+![Example](./misc/usage_example.svg)
 
 Kavita is easily one of my favorite open-source projects, but one downside I encountered was the need to manually copy files to the correct directory on the server. Additionally, if I wanted to use Volumes, I had to manually rename hundreds of files.
 So it seamed like a really good excuse to learn Go, I'm not much of a programmer (my favorite language is YAML) but I'm really proud of the end result even though the code is kind of a mess.
