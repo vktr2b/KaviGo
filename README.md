@@ -40,6 +40,6 @@ Since I couldn't find an easily accessible API that provides the volume number f
 
 ### Special Chapters
 
-Kavita's handling of special chapters is a bit unconventional, or I might not fully understand how they should be used. My expectation was that if I named the file like `manga_name_v4_chp24.5_SP1.cbz`, it would be added to both the first volume and the "Special" tab, showing the volume and chapter number along with the special episode number. Unfortunately, this wasn't the case.
+Kavita handles special chapters weirdly or I didn't grasp the idea of how to use them. My expectation was that if I named the file like `manga_name_v4_chp24.5_SP1.cbz`, it would be added to both the first volume and the "Special" tab, showing the volume and chapter number along with the special episode number. Unfortunately, this wasn't the case.
 
 The workaround I implemented is to set both the chapter (`chp`) and special episode (`SP`) numbers to the same value. Special episodes will only be generated if you use the `-s` flag.
