@@ -1,5 +1,5 @@
 # KaviGo
----
+
 **KaviGo** is a simple Go-based CLI tool that automatically renames files to match the naming conventions required by [Kavita](https://github.com/Kareadita/Kavita), helping you keep your manga library better organized.
 
 ![Example](./misc/usage_example.svg)
