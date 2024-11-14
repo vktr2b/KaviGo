@@ -4,7 +4,7 @@
 
 ![Example](./misc/usage_example.svg)
 
-Kavita is easily one of my favorite open-source projects, but one downside I encountered was the need to manually copy files to the correct directory on the server. Additionally, if I wanted to use Volumes, I had to manually rename hundreds of files.
+Kavita is easily one of my favorite open-source projects, but the only downside I had with it was that I had to manually copy files over to the correct directory on the server. Additionally, if I wanted to use Volumes, I had to manually rename hundreds of files.
 So it seamed like a really good excuse to learn Go, I'm not much of a programmer (my favorite language is YAML) but I'm really proud of the end result even though the code is kind of a mess.
 
 **KaviGo** renames manga chapters to a standardized naming convention. This ensures Kavita can properly parse the volume and chapter numbers, and even handle special chapters (see "Known Limitations" for more details).
@@ -22,24 +22,24 @@ Download the binary and run it using the following command:
 
 ### Flags
 
-| Flag | Description                                                                                             | Required |
-| ---- | ------------------------------------------------------------------------------------------------------- | -------- |
-| `-d` | Path to the source directory containing manga chapters (directory name should be the name of the manga) | Yes      |
-| `-o` | Path to the destination directory. If not provided, files will remain in the source directory           | Optional |
-| `-r` | Path to the Volume ranges file (comma-delimited). [[#Required volume ranges file\|Why?]] , example      | Yes      |
-| `-v` | Verbose output                                                                                          | Optional |
-| `-p` | Preserve original files                                                                                 | Optional |
-| `-s` | Mark special chapters as special. See [[#Special Chapters]] for more info.                              | Optional |
+| Flag | Description                                                                                                                  | Required |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------- | -------- |
+| `-d` | Path to the source directory containing manga chapters (directory name should be the name of the manga)                      | Yes      |
+| `-o` | Path to the destination directory. If not provided, files will remain in the source directory                                | Optional |
+| `-r` | Path to the Volume ranges file (comma-delimited). [Why?](#required-volume-ranges-file) , [example](./misc/volRanges.example) | Yes      |
+| `-v` | Verbose output                                                                                                               | Optional |
+| `-p` | Preserve original files                                                                                                      | Optional |
+| `-s` | Mark special chapters as special. See  [Special Chapters](#special-chapters) for more info.                                  | Optional |
 
 
 ## Limitations / Known Issues
 
 ### Required Volume Ranges File
 
-Since I couldn't find an easily accessible API that provides the volume number for each chapter, I decided on a manual approach. You must provide a comma-delimited file that specifies the first and last chapters of each volume, along with the corresponding volume number. Use the `-r` (ranges) flag to specify the location of this file.
+Since I couldn't find an easily accessible API that provides the volume number for each chapter, I decided on a manual approach. You must provide a comma-delimited file that specifies the first and last chapters of each volume, along with the corresponding volume number. Use the `-r` (ranges) flag to specify the location of this file. See [example](./misc/volRanges.example)
 
 ### Special Chapters
 
-Kavita handles special chapters weirdly or I didn't grasp the idea of how to use them. My expectation was that if I named the file like `manga_name_v4_chp24.5_SP1.cbz`, it would be added to both the first volume and the "Special" tab, showing the volume and chapter number along with the special episode number. Unfortunately, this wasn't the case.
+Kavita handles special chapters weirdly or I didn't grasp the idea of how to use them(). My expectation was that if I named the file like `manga_name_v4_chp24.5_SP1.cbz`, it would be added to both the fourth volume to the end and the "Special" tab as well, showing the volume and chapter number along with the special chapter number. Unfortunately, this wasn't the case.
 
-The workaround I implemented is to set both the chapter (`chp`) and special episode (`SP`) numbers to the same value. Special episodes will only be generated if you use the `-s` flag.
+The most "acceptable" solution I could think of was to set both the chapter (`chp`) and special episode (`SP`) numbers to the same value, that way it's added to the special tab and it indicates the chapter number. Special episodes will only be generated if you use the `-s` flag, but I don't recommend it.
