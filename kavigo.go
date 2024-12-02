@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"flag"
 	"fmt"
 	"log"
 	"math"
@@ -11,187 +10,153 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/urfave/cli/v2"
 )
+
+type Manga struct {
+	Directory   string
+	MangaName   string
+	ChapterName string
+	Chapter     float64
+	Extention   string
+	Volume      int
+}
 
 type Range struct {
 	Min, Max float64
 	Volume   int
 }
 
-var ranges []Range
-var fileTitle string
+var d string
+var o string
+var r string
+var v bool
+var p bool
 
 func main() {
-	flagDirPath := flag.String("d", "", "Manga directory path")
-	flagRangesPath := flag.String("r", "", "Ranges file location")
-	flagDestination := flag.String("o", "", "Set the destination of where to create the manga folder")
-	flagVerbose := flag.Bool("v", false, "Set output verbosity")
-	flagPreserve := flag.Bool("p", false, "Preserver original files")
-	flagSpecial := flag.Bool("s", false, "Create special chapters")
 
-	flag.Parse()
+	runCli()
 
-	dirPath := *flagDirPath
-	mangaNameDir := filepath.Base(dirPath)
-	mangaName := strings.ReplaceAll(mangaNameDir, " ", "_")
-	var destination string
+	//fmt.Println(getDataFromManga(d))
 
-	files, err := os.ReadDir(dirPath)
+	data, err := getDataFromManga(d)
+	checkFatalErr(err)
+
+	for _, name := range data {
+		origin := filepath.Clean(name.Directory + "/" + name.ChapterName)
+		var toBe string
+
+		if p == true && o == "" {
+			dirty := fmt.Sprintf("%v/%v/%v_v%v_chp%v%v", name.Directory, name.MangaName, name.MangaName, name.Volume, name.Chapter, name.Extention)
+
+			toBe = (filepath.Clean(dirty))
+
+			err := customCopy(origin, toBe)
+			checkFatalErr(err)
+
+		} else if p == false && len(o) >= 1 {
+			checkOutputDir(o)
+			dirty := fmt.Sprintf("%v/%v/%v_v%v_chp%v%v", o, name.MangaName, name.MangaName, name.Volume, name.Chapter, name.Extention)
+
+			toBe = filepath.Clean(dirty)
+
+			err := customCopy(origin, toBe)
+			checkFatalErr(err)
+
+			err = os.Remove(origin)
+			checkFatalErr(err)
+
+		} else if p == true && len(o) >= 1 {
+			dirty := fmt.Sprintf("%v/%v/%v_v%v_chp%v%v", o, name.MangaName, name.MangaName, name.Volume, name.Chapter, name.Extention)
+
+			toBe = filepath.Clean(dirty)
+
+			err := customCopy(origin, toBe)
+			checkFatalErr(err)
+
+		} else {
+			dirty := fmt.Sprintf("%v/%v_v%v_chp%v%v", name.Directory, name.MangaName, name.Volume, name.Chapter, name.Extention)
+
+			toBe = filepath.Clean(dirty)
+
+			os.Rename(origin, toBe)
+		}
+
+		if v == true {
+			fmt.Printf("original: %v \t Renamed to %v \n", origin, toBe)
+		}
+
+	}
+
+}
+
+func getDataFromManga(directory string) ([]Manga, error) {
+	var manga []Manga
+
+	//load the ranges file
+	r, err := loadRanges(r)
+	checkFatalErr(err)
+
+	//extract the manga name from the top directory
+	mn := filepath.Base(directory)
+	//repalce every space with "_"
+	mnf := strings.ReplaceAll(mn, " ", "_")
+
+	// read the contents of the directory
+	files, err := os.ReadDir(directory)
+	if err != nil {
+		return nil, err
+	}
+
+	//loop through the contents of the directory and do some magic
+	for _, file := range files {
+		fileName := file.Name()
+		extension := getFileExtension(fileName)
+
+		chapter := extractOneChapterNumber(fileName, extension)
+
+		volume := categorigeChapters(chapter, r)
+		manga = append(manga, Manga{
+			Directory:   directory,
+			MangaName:   mnf,
+			ChapterName: file.Name(),
+			Chapter:     chapter,
+			Volume:      volume,
+			Extention:   extension,
+		})
+
+	}
+
+	return manga, err
+
+}
+
+func extractOneChapterNumber(fileName string, extention string) float64 {
+
+	// strip filename of the extension
+	s := strings.ReplaceAll(fileName, extention, "")
+
+	// regex
+	reg := regexp.MustCompile(`[0-9]*\.?[0-9]+`)
+
+	// find all the numbers with the regex, in the striped filename
+	findString := reg.FindAllString(s, -1)
+
+	//Turn the findString slice to a String
+	toString := strings.Join(findString, ", ")
+
+	ret, err := strconv.ParseFloat(toString, 64)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	numbers := make([]interface{}, 0)
-	fileNames := make([]string, 0)
-	for _, each := range files {
+	return ret
 
-		chapterNumber := extractChapterNumber(each.Name())
-
-		numbers = append(numbers, chapterNumber)
-
-		fileTitle = extractFileTitle(each.Name())
-
-		fileNames = append(fileNames, fileTitle)
-	}
-
-	foundFileNames := deduplicateSlice(fileNames)
-
-	// load the volRanges file
-	if len(*flagRangesPath) == 0 {
-		ranges, err = loadRanges("volRanges")
-		if err != nil {
-			log.Fatal("Failed to load default volRanges file. Please ensure it exists or provide a custom file path with -r flag. \n", err)
-		}
-	} else {
-		ranges, err = loadRanges(*flagRangesPath)
-		if err != nil {
-			log.Fatalf("Failed to load ranges from file: %v, \n %v", *flagRangesPath, err)
-		}
-	}
-
-	if *flagDestination != "" {
-		destination = *flagDestination
-	} else {
-		destination = dirPath
-	}
-
-	// map to hold categories and their corresponding numbers
-	volumeMap := make(map[int][]float64)
-
-	for _, item := range numbers {
-		switch v := item.(type) {
-		case int:
-			volume := categorigeChapters(float64(v), ranges)
-			volumeMap[volume] = append(volumeMap[volume], float64(v))
-		case float64:
-			volume := categorigeChapters(v, ranges)
-			volumeMap[volume] = append(volumeMap[volume], v)
-		default:
-			fmt.Printf("unexpected type: %T", v)
-		}
-	}
-
-	// loop through the volumeMap
-	for volume, nums := range volumeMap {
-
-		//loop through the chapter numbers
-		for _, inNums := range nums {
-			var oldPath string
-			stringChapter := strconv.FormatFloat(inNums, 'f', -1, 64)
-			stringVolume := strconv.Itoa(volume)
-
-			for _, oldFilename := range foundFileNames {
-				q := dirPath + "/" + oldFilename + stringChapter + ".cbz"
-				if fileExists(q) {
-					//fmt.Println("this file exists", oldFilename)
-					oldPath = dirPath + "/" + oldFilename + stringChapter + ".cbz"
-
-				}
-			}
-
-			newPath := destination + "/" + mangaName + "_v" + stringVolume + "_chp" + stringChapter + ".cbz"
-			newPathPreserved := destination + "/" + mangaName + "/" + mangaName + "_v" + stringVolume + "_chp" + stringChapter + ".cbz"
-			var newPathSpecial string
-			var newPathSpecialPreserved string
-			var message string
-			var newerPath string
-
-			// path based on if special flag was used or not
-			switch *flagSpecial {
-			case true:
-				newPathSpecial = destination + "/" + mangaName + "_v" + stringVolume + "_chp" + stringChapter + "_SP" + stringChapter + ".cbz"
-				newPathSpecialPreserved = destination + "/" + mangaName + "/" + mangaName + "_v" + stringVolume + "_chp" + stringChapter + "_SP" + stringChapter + ".cbz"
-			case false:
-				newPathSpecial = destination + "/" + mangaName + "_v" + stringVolume + "_chp" + stringChapter + ".cbz"
-				newPathSpecialPreserved = destination + "/" + mangaName + "/" + mangaName + "_v" + stringVolume + "_chp" + stringChapter + ".cbz"
-			}
-
-			// check if chapter is normal or a special
-			if inNums == math.Trunc(inNums) {
-				message = fmt.Sprintf("Chapter: %s \t\t Renamed to: %s", oldPath, newPath)
-
-				switch *flagPreserve {
-				case true:
-					newerPath = newPathPreserved
-				case false:
-					newerPath = newPath
-				}
-
-			} else {
-				message = fmt.Sprintf("SPECIAL chapter: %s \t Renamed to: %s", oldPath, newPathSpecial)
-
-				switch *flagPreserve {
-				case true:
-					newerPath = newPathSpecialPreserved
-				case false:
-					newerPath = newPathSpecial
-				}
-			}
-
-			// verbose switch
-			if *flagVerbose {
-				fmt.Println(message)
-			}
-
-			// preserver switch
-			if *flagPreserve {
-				preserverOriginal(oldPath, newerPath)
-			} else {
-				os.Rename(oldPath, newerPath)
-			}
-
-		}
-	}
-}
-
-func extractChapterNumber(filenName string) interface{} {
-
-	stripedOfType := strings.ReplaceAll(filenName, ".cbz", "")
-
-	reg := regexp.MustCompile(`[0-9]*\.?[0-9]+`)
-
-	findString := reg.FindAllString(stripedOfType, -1)
-
-	stringFromSlice := strings.Join(findString, ", ")
-
-	if len(findString) > 0 {
-		return convertStringToNumber(stringFromSlice)
-	}
-
-	return nil
-}
-
-func convertStringToNumber(s string) interface{} {
-	if strings.Contains(s, ".") {
-		f, _ := strconv.ParseFloat(s, 64)
-		return f
-	} else {
-		i, _ := strconv.Atoi(s)
-		return i
-	}
 }
 
 func loadRanges(rangeFile string) ([]Range, error) {
+	var ranges []Range
 
 	file, err := os.Open(rangeFile)
 	if err != nil {
@@ -224,59 +189,127 @@ func categorigeChapters(num float64, ranges []Range) int {
 	return 0
 }
 
-func preserverOriginal(source string, destination string) {
-	origin, err := os.ReadFile(source)
+func getFileExtension(f string) string {
+	extension := f[len(f)-4:]
 
+	return extension
+}
+
+func runCli() {
+
+	app := &cli.App{
+		Name:  "KaviGo",
+		Usage: "fight the loneliness!",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:        "d",
+				Value:       "",
+				Usage:       "input directory",
+				Destination: &d,
+				Required:    true,
+			},
+			&cli.StringFlag{
+				Name:        "o",
+				Value:       "",
+				Usage:       "Output directory",
+				Destination: &o,
+				Required:    false,
+			},
+			&cli.StringFlag{
+				Name:        "r",
+				Value:       "./volRanges",
+				Usage:       "Path to the Volume ranges file (comma-delimited)",
+				Destination: &r,
+				Required:    false,
+			},
+			&cli.BoolFlag{
+				Name:        "v",
+				Value:       false,
+				Usage:       "Verbose output",
+				Destination: &v,
+				Required:    false,
+			},
+			&cli.BoolFlag{
+				Name:        "p",
+				Value:       false,
+				Usage:       "Preserve original files",
+				Destination: &p,
+				Required:    false,
+			},
+		},
+		Action: func(c *cli.Context) error {
+			return nil
+		},
+	}
+
+	if err := app.Run(os.Args); err != nil {
+		log.Fatal(err)
+	}
+
+}
+
+func checkFatalErr(err error) {
 	if err != nil {
-		fmt.Println("there was an error with", source, err)
+		log.Fatal(err)
 	}
 
+}
+
+func checkOutputDir(o string) {
+
+	if _, err := os.Stat(o); os.IsNotExist(err) {
+		var answer string
+
+		// Ask user if he wants to create the directory if it does not exist
+		for {
+			fmt.Println("Directory " + o + "does not exist \n Would you like it to be created ?(yes/no):")
+			fmt.Scanln(&answer)
+			if answer == "yes" || answer == "no" {
+				break
+			}
+			fmt.Println("Invalid input. Please try again.")
+
+		}
+
+		// if answer yes make the directory otherwise exit
+		if answer == "yes" {
+			mkdirErr := os.MkdirAll(o, 0755)
+			if mkdirErr != nil {
+				log.Fatalln("There was a problem with creating directories:", mkdirErr)
+			}
+
+		} else {
+			os.Exit(1)
+		}
+
+	}
+
+}
+
+func customCopy(original string, destination string) error {
+
+	// read the original file
+	origin, err := os.ReadFile(original)
+	if err != nil {
+		return err
+	}
+
+	// get the directory of the path, if it does not exist create it
 	destinationPath := filepath.Dir(destination)
-
-	mkdirErro := os.MkdirAll(destinationPath, 0755)
-	if mkdirErro != nil {
-		log.Fatalln("There was a problem with creating directories:", mkdirErro)
-	}
-
-	erro := os.WriteFile(destination, []byte(origin), 0644)
-	if erro != nil {
-		log.Fatalln("There was a problem with writing the file:", erro)
-	}
-
-}
-
-func extractFileTitle(originalFileName string) string {
-
-	removeType := strings.ReplaceAll(originalFileName, ".cbz", "")
-
-	reg := regexp.MustCompile(`[0-9]*\.?[0-9]+`)
-
-	result := reg.ReplaceAllString(removeType, "")
-
-	return result
-
-}
-
-func deduplicateSlice(dupSlice []string) []string {
-	// map to track unique file names
-	unique := make(map[string]struct{})
-
-	var result []string
-
-	// loop over the input slice
-	for _, str := range dupSlice {
-		// check if string already exists in unique map, if doesn't set append it to the result slice and set the unique[str] to empty
-		if _, exists := unique[str]; !exists {
-			unique[str] = struct{}{}
-			result = append(result, str)
+	if _, err := os.Stat(destinationPath); os.IsNotExist(err) {
+		mkdirErro := os.MkdirAll(destinationPath, 0755)
+		if mkdirErro != nil {
+			//log.Fatalln("There was a problem with creating directories:", mkdirErro)
+			return mkdirErro
 		}
 	}
-	return result
-}
 
-func fileExists(fileName string) bool {
-	if _, err := os.Stat(fileName); os.IsNotExist(err) {
-		return false
+	// write a new file with the new name to the new directory
+	erro := os.WriteFile(destination, []byte(origin), 0644)
+	if erro != nil {
+		//log.Fatalln("There was a problem with writing the file:", erro)
+		return erro
 	}
-	return true
+
+	return nil
 }
