@@ -56,17 +56,16 @@ func main() {
 
 	foundFileNames := deduplicateSlice(fileNames)
 
-	rangeFlagLen := len(*flagRangesPath)
-	switch {
-	case rangeFlagLen <= 0:
+	// load the volRanges file
+	if len(*flagRangesPath) == 0 {
 		ranges, err = loadRanges("volRanges")
 		if err != nil {
-			log.Fatal("Error, by default tried to load volRanges from the same location as the executable but unsuccessfully, please check if they exist or define the file location with -r flag \n", err)
+			log.Fatal("Failed to load default volRanges file. Please ensure it exists or provide a custom file path with -r flag. \n", err)
 		}
-	case rangeFlagLen >= 1:
+	} else {
 		ranges, err = loadRanges(*flagRangesPath)
 		if err != nil {
-			log.Fatal("Error loading ranges:", err)
+			log.Fatalf("Failed to load ranges from file: %v, \n %v", *flagRangesPath, err)
 		}
 	}
 
@@ -92,7 +91,7 @@ func main() {
 		}
 	}
 
-	// look through the volumeMap
+	// loop through the volumeMap
 	for volume, nums := range volumeMap {
 
 		//loop through the chapter numbers
