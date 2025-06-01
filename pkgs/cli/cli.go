@@ -13,8 +13,9 @@ import (
 func RunCli() {
 
 	cmd := &cli.Command{
-		Name:  "KaviGo",
-		Usage: "KaviGo is a simple Go-based CLI tool that automatically renames files to match the naming conventions required by Kavita",
+		Name:    "KaviGo",
+		Usage:   "KaviGo is a simple Go-based CLI tool that automatically renames files to match the naming conventions required by Kavita",
+		Version: "v3.0.0",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:        "d",
