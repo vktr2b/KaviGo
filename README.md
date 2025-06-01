@@ -19,6 +19,10 @@ Download the binary and run it using the following command:
 ```bash
 ./kavigo -d /path/to/source -o /path/to/destination -r /path/to/ranges.file -v -p
 ```
+In v3.0.0 a config file can also be used instead of flags and a ranges file. By default it looks for a `kavigo.yaml` in the same directory as the executable or with the `-c` flag a config file can be passed in from a custom location.
+```bash
+./kavigo -c /path/to/config.yaml
+```
 
 ### Flags
 
@@ -29,8 +33,28 @@ Download the binary and run it using the following command:
 | `-r` | Path to the Volume ranges file (comma-delimited). [Why?](#required-volume-ranges-file) , [example](./misc/volRanges.example) | Yes      |
 | `-v` | Verbose output                                                                                                               | Optional |
 | `-p` | Preserve original files                                                                                                      | Optional |
-| `-s` | Mark special chapters as special. See  [Special Chapters](#special-chapters) for more info.                                  | Optional |
+| `-s` |  ~~Mark special chapters as special. See  [Special Chapters](#special-chapters) for more info.~~ Removed in v2.0.0           | Optional |
+| `-c` | Define a custom config file location. By default it looks for `./kavigo.yaml` in the same directory as the executable        | Optional |
 
+### Config File example 
+
+```yaml
+directories:
+  manga: /home/vktr/Documents/Mangas/Zom 100 - Bucket List of the Dead
+  output: /tmp    # Optional
+options:
+  verbosity: true 
+  preserve: true
+ranges: | #First number: first chapter in the volume. Second: last chapter in volume. Third: Volume number
+  1,5,1
+  6,15,2
+  16,25,3
+  26,35,4
+  36,45,5
+  46,55,6
+  56,64,7
+  65,74,8
+```
 
 ## Limitations / Known Issues
 
@@ -38,7 +62,8 @@ Download the binary and run it using the following command:
 
 Since I couldn't find an easily accessible API that provides the volume number for each chapter, I decided on a manual approach. You must provide a comma-delimited file that specifies the first and last chapters of each volume, along with the corresponding volume number. Use the `-r` (ranges) flag to specify the location of this file. See [example](./misc/volRanges.example)
 
-### Special Chapters
+
+### ~~Special Chapters~~ Removed in v3.0.0
 
 Kavita handles special chapters weirdly or I didn't grasp the idea of how to use them(). My expectation was that if I named the file like `manga_name_v4_chp24.5_SP1.cbz`, it would be added to both the fourth volume to the end and the "Special" tab as well, showing the volume and chapter number along with the special chapter number. Unfortunately, this wasn't the case.
 

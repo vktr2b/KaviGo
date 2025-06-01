@@ -21,7 +21,7 @@ func RunCli() {
 				Value:       "",
 				Usage:       "input directory",
 				Destination: &globvars.D,
-				Required:    true,
+				Required:    false,
 			},
 			&cli.StringFlag{
 				Name:        "o",
@@ -32,9 +32,16 @@ func RunCli() {
 			},
 			&cli.StringFlag{
 				Name:        "r",
-				Value:       "./volRanges",
+				Value:       globvars.R,
 				Usage:       "Path to the Volume ranges file (comma-delimited)",
 				Destination: &globvars.R,
+				Required:    false,
+			},
+			&cli.StringFlag{
+				Name:        "c",
+				Value:       globvars.C,
+				Usage:       "Yaml config file",
+				Destination: &globvars.C,
 				Required:    false,
 			},
 			&cli.BoolFlag{

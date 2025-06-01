@@ -8,10 +8,18 @@ import (
 
 	"kavigo/pkgs/cli"
 	"kavigo/pkgs/dirhandler"
-	"kavigo/pkgs/extractor"
 	"kavigo/pkgs/filehandler"
 	"kavigo/pkgs/globvars"
+	"kavigo/pkgs/parser"
 )
+
+func init() {
+
+	cli.RunCli()
+
+	parser.ReadConf()
+
+}
 
 func main() {
 
@@ -20,11 +28,7 @@ func main() {
 	v := globvars.V
 	p := globvars.P
 
-	cli.RunCli()
-
-	//fmt.Println(getDataFromManga(d))
-
-	data, err := extractor.GetDataFromManga(d)
+	data, err := parser.GetDataFromManga(d)
 	checkFatalErr(err)
 
 	for _, name := range data {

@@ -2,6 +2,7 @@ package loader
 
 import (
 	"bufio"
+	"io"
 	"log"
 	"os"
 	"strconv"
@@ -10,22 +11,28 @@ import (
 	"kavigo/pkgs/globvars"
 )
 
-func LoadRanges(rangeFile string) ([]globvars.Range, error) {
+func LoadRanges() ([]globvars.Range, error) {
 
 	var ranges []globvars.Range
+	var source io.Reader
 
-	file, err := os.Open(rangeFile)
-	if err != nil {
-		return nil, err
+	if globvars.PR != "" {
+		source = strings.NewReader(globvars.PR)
+	} else {
+		source, err := os.Open(globvars.R)
+		if err != nil {
+			return nil, err
+		}
+		defer source.Close()
+
 	}
-	defer file.Close()
 
-	scanner := bufio.NewScanner(file)
+	scanner := bufio.NewScanner(source)
 	for scanner.Scan() {
 		line := scanner.Text()
 		parts := strings.Split(line, ",")
 		if len(parts) != 3 {
-			log.Fatal("File format is wrong")
+			log.Fatal("Error while parsing the Ranges")
 		}
 		min, _ := strconv.ParseFloat(parts[0], 64)
 		max, _ := strconv.ParseFloat(parts[1], 64)

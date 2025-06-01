@@ -1,6 +1,7 @@
-package extractor
+package parser
 
 import (
+	"fmt"
 	"log"
 	"math"
 	"os"
@@ -9,16 +10,50 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/goccy/go-yaml"
+
 	"kavigo/pkgs/filehandler"
 	"kavigo/pkgs/globvars"
 	"kavigo/pkgs/loader"
 )
 
+func ReadConf() {
+
+	var s globvars.Conf
+	conFile := globvars.C
+
+	// check if config file exists
+	_, err := os.Stat(conFile)
+
+	if os.IsNotExist(err) {
+		fmt.Println("Config file does not exist: ", err)
+	} else {
+
+		bytes, erro := os.ReadFile(conFile)
+		if erro != nil {
+			fmt.Println(erro)
+		}
+
+		if err := yaml.Unmarshal(bytes, &s); err != nil {
+			fmt.Println("error brotha", err)
+			os.Exit(1)
+		}
+
+		globvars.D = s.Directories.Manga
+		globvars.O = s.Directories.Destination
+		globvars.V = s.Options.Verbosity
+		globvars.P = s.Options.Preserve
+		globvars.PR = s.Ranges
+
+	}
+
+}
+
 func GetDataFromManga(directory string) ([]globvars.Manga, error) {
 	var manga []globvars.Manga
 
-	//load the ranges file
-	ranges, err := loader.LoadRanges(globvars.R)
+	//load the ranges
+	ranges, err := loader.LoadRanges()
 	if err != nil {
 		log.Fatal(err)
 	}
