@@ -63,7 +63,7 @@ ranges: | #First number: first chapter in the volume. Second: last chapter in vo
 Since I couldn't find an easily accessible API that provides the volume number for each chapter, I decided on a manual approach. You must provide a comma-delimited file that specifies the first and last chapters of each volume, along with the corresponding volume number. Use the `-r` (ranges) flag to specify the location of this file. See [example](./misc/volRanges.example)
 
 
-### ~~Special Chapters~~ Removed in v3.0.0
+### ~~Special Chapters~~ Removed in v2.0.0
 
 Kavita handles special chapters weirdly or I didn't grasp the idea of how to use them(). My expectation was that if I named the file like `manga_name_v4_chp24.5_SP1.cbz`, it would be added to both the fourth volume to the end and the "Special" tab as well, showing the volume and chapter number along with the special chapter number. Unfortunately, this wasn't the case.
 
