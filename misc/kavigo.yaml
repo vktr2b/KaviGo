@@ -1,9 +1,16 @@
 directories:
   manga: /home/vktr/Documents/Mangas/Zom 100 - Bucket List of the Dead
-  output: /tmp    # Optional
+  destination: /tmp    # Optional, BUT IF copying to remote use this to define remote path 
 options:
   verbosity: true 
   preserve: true
+  copytoremote: false
+remote:
+  host: IP/hostname
+  port: 22
+  user: viktr
+  password:     # if ssh key is used this is not needed
+  sshkey:       #path/to/sshkey, if password is used this is not needed 
 ranges: | #First number: first chapter in the volume. Second: last chapter in volume. Third: Volume number
   1,5,1
   6,15,2

@@ -8,6 +8,7 @@ import (
 	"github.com/urfave/cli/v3"
 
 	"kavigo/pkgs/globvars"
+	"kavigo/pkgs/sftp"
 )
 
 func RunCli() {
@@ -58,6 +59,18 @@ func RunCli() {
 				Usage:       "Preserve original files",
 				Destination: &globvars.P,
 				Required:    false,
+			},
+			&cli.BoolFlag{
+				Name:     "q",
+				Value:    false,
+				Usage:    "For testing remote",
+				Required: false,
+				Action: func(ctx context.Context, c *cli.Command, b bool) error {
+					sftp.CreateRemoteConn()
+					sftp.CopyFilesToRemote("/tmp/hello.txt", "/tmp/test/hello.txt", "/tmp/test/")
+					sftp.CloseRemoteConn()
+					return nil
+				},
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {

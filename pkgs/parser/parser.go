@@ -44,6 +44,12 @@ func ReadConf() {
 		globvars.V = s.Options.Verbosity
 		globvars.P = s.Options.Preserve
 		globvars.PR = s.Ranges
+		globvars.Host = s.Remote.Host
+		globvars.Port = s.Remote.Port
+		globvars.User = s.Remote.User
+		globvars.Password = s.Remote.Password
+		globvars.SshKey = s.Remote.SshKey
+		globvars.CopyToRemote = s.Options.CopyToRemote
 
 	}
 
