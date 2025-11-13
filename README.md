@@ -19,7 +19,7 @@ Download the binary and run it using the following command:
 ```bash
 ./kavigo -d /path/to/source -o /path/to/destination -r /path/to/ranges.file -v -p
 ```
-In v3.0.0 a config file can also be used instead of flags and a ranges file. By default it looks for a `kavigo.yaml` in the same directory as the executable or with the `-c` flag a config file can be passed in from a custom location.
+In v3.0.0 and above a config file can also be used instead of flags and a ranges file. By default it looks for a `kavigo.yaml` in the same directory as the executable or with the `-c` flag a config file can be passed in from a custom location.
 ```bash
 ./kavigo -c /path/to/config.yaml
 ```
@@ -41,10 +41,17 @@ In v3.0.0 a config file can also be used instead of flags and a ranges file. By 
 ```yaml
 directories:
   manga: /home/vktr/Documents/Mangas/Zom 100 - Bucket List of the Dead
-  output: /tmp    # Optional
+  destination: /tmp    # Optional, BUT IF copying to remote use this to define remote path 
 options:
   verbosity: true 
   preserve: true
+  copytoremote: false
+remote:
+  host: IP/hostname
+  port: 22
+  user: sshUser
+  password:     # if ssh key is used this is not needed
+  sshkey:       #path/to/sshkey, if password is used this is not needed 
 ranges: | #First number: first chapter in the volume. Second: last chapter in volume. Third: Volume number
   1,5,1
   6,15,2
