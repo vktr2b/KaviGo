@@ -5,7 +5,7 @@ go 1.25.4
 require github.com/urfave/cli/v3 v3.6.1
 
 require (
-	github.com/goccy/go-yaml v1.18.0
+	github.com/goccy/go-yaml v1.19.0
 	github.com/pkg/sftp v1.13.10
 	golang.org/x/crypto v0.45.0
 )
