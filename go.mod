@@ -5,7 +5,7 @@ go 1.27.0
 require (
 	github.com/goccy/go-yaml v1.19.2
 	github.com/pkg/sftp v1.13.11
-	github.com/urfave/cli/v3 v3.11.0
+	github.com/urfave/cli/v3 v3.13.0
 	golang.org/x/crypto v0.57.0
 )
 
